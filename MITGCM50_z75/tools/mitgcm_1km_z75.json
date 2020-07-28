@@ -1,0 +1,33 @@
+{
+    "target_grid":{
+        "netcdf": {
+          "file":"/tank/users/schoonover/topocontrol-gulfstream/MITGCM50_z75/input/mitgcm_input.nc",
+          "lon_units": "neg_deg_east", 
+          "lon_var": "lon",
+          "lat_var": "lat"
+        }
+    },
+    "bathymetry":[
+        {
+	  "name": "GEBCO Bathymetry (smoothed)",
+	  "io_type": "netcdf",
+	  "box_config": {},
+	  "nc_config" : {
+            "file": "/tank/topog/gulf-stream/bathymetry/gebco_2019_n43.9453125_s18.80859375_w-83.935546875_e-48.779296875.nc",
+            "lon_units": "neg_deg_east", 
+            "lat_var": "lat", 
+            "lon_var": "lon", 
+            "topog_var": "elevation", 
+            "swap_dimensions": false
+          },
+	  "output":"gebco_smoothed_topog",
+	  "smoothing": {"active": true, "sigma": [6.0, 6.0]},
+	  "interp_kind": "cubic"
+        }
+    ],
+    "source_grid":{},
+    "mitgcm_source" : {},
+    "output_directory": "/tank/users/schoonover/topocontrol-gulfstream/MITGCM50_z75/input",
+
+    "n_cores": 2
+}

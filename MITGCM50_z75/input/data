@@ -1,0 +1,75 @@
+# ====================
+# | Model parameters |
+# ====================
+#
+# Continuous equation parameters
+ &PARM01
+ viscAh=10.0,
+ viscAz=1.E-5,
+# Biharmonic diffusivity 
+ viscA4=7.9E7,
+ bottomDragLinear=0.0,
+ bottomDragQuadratic=2.0E-3,
+ no_slip_sides=.FALSE.,
+ no_slip_bottom=.FALSE.,
+ diffKhT=10.0,
+ diffKzT=1.0E-5,
+ diffK4T=7.9E7,
+ diffKhS=20.0,
+ diffK4S=7.9E7,
+ diffKzS=1.0E-5,
+ implicitViscosity=.TRUE.,
+ implicitDiffusion=.TRUE.,
+ eosType='MDJWF',
+ rigidLid=.FALSE.,
+ implicitFreeSurface=.TRUE.,
+ hFacMin=0.4,
+ nonHydrostatic=.FALSE.,
+ readBinaryPrec=32,
+ useSingleCPUIO=.TRUE.,
+ staggerTimeStep=.TRUE.,
+ balanceEmPmR=.TRUE.,
+ saltAdvScheme=33,
+ tempAdvScheme=33,
+ &end
+# Elliptic solver parameters
+ &PARM02
+ cg2dMaxIters=1000,
+ cg2dTargetResidual=1.E-13,
+ cg3dMaxIters=20,
+ cg3dTargetResidual=1.E-8,
+ &end
+# Time stepping parameters
+ &PARM03
+ nIter0=0,
+ nTimeSteps=1000,
+ deltaT=180.0,
+ abEps=0.01,
+ pChkptFreq=180000.0, 
+ chkptFreq=180000.0,
+ dumpFreq=180000.0,
+ monitorSelect=2,
+ monitorFreq=720.0,
+ periodicExternalForcing=.TRUE.,
+ externForcingPeriod=86400.0,
+ externForcingCycle=31622400.0,
+# tauThetaClimRelax=864000.0,
+ &end
+# Gridding parameters
+ &PARM04
+ usingCartesianGrid=.FALSE.,
+ usingSphericalPolarGrid=.TRUE.,
+ ygOrigin=27.9947,
+ delXFile='dx.bin',
+ delYFile='dy.bin',
+ delRFile='dz.bin',
+ &end
+# Input datasets
+ &PARM05
+ bathyFile='gebco_smoothed_topog.bin',
+ hydrogThetaFile='t.init.bin',
+ pSurfInitFile='eta.init.bin',
+ hydrogSaltFile='s.init.bin',
+ uVelInitFile='u.init.bin',
+ vVelInitFile='v.init.bin',
+ &end

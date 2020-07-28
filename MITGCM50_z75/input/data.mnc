@@ -1,0 +1,16 @@
+ &MNC_01
+# mnc_echo_gvtypes=.FALSE.,
+# mnc_use_indir=.FALSE.,
+# mnc_indir_str='start/',
+ mnc_use_outdir=.FALSE.,
+ mnc_outdir_str='mnc_test_',
+ mnc_outdir_date=.FALSE.,
+ monitor_mnc=.FALSE.,
+# snapshot_mnc=.FALSE.,
+# timeave_mnc=.TRUE.,
+ pickup_write_mnc=.FALSE.,
+ pickup_read_mnc=.FALSE.,
+ mnc_filefreq=2635200.0,
+# mnc_filefreq=31622400.0,
+ &end
+

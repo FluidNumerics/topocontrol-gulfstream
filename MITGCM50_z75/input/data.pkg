@@ -1,0 +1,8 @@
+# Packages
+ &PACKAGES
+ useOBCS=.TRUE.,
+ useKPP=.TRUE.,
+ useCHEAPAML=.TRUE.,
+ useMNC=.TRUE.,
+ useDIAGNOSTICS=.FALSE.,
+ &end

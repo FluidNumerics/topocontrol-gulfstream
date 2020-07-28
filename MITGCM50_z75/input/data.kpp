@@ -1,0 +1,5 @@
+ # data.kpp
+ &KPP_PARM01
+ Ricr=0.354,
+ Riinfty=0.6999,
+ &end
