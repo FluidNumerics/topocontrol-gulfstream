@@ -30,13 +30,17 @@ The vertical grid is identical to the 75-layer vertical grid used in the [ORCA02
 ```
 
 ### Advection Scheme
+3-DST + Sweby Flux Limiter (Code=33)
 
 ### Lateral Viscosity & Diffusivity
+Lateral Viscosity & Diffusivity values are chosen to be consistent with the HYCOM50 simulation of [Chassignet and Xu (2017)](https://doi.org/10.1175/JPO-D-17-0031.1). Specifically, lateral viscous and diffusive operators are a combination of Laplacian and Biharmonic. Lateral Laplacian viscosisty and diffusivity are set to `Ah = 10 m^2/s`. The biharmonic viscosity and diffusivity is set to `A4h = V4*dx^3` where `V4 = 4 cm/s` and `dx=1968.15` is the latitudinal grid spacing at the southern boundary (where it is largest). This gives (approximately) `A4h = 7.87E7 m^4/s` 
 
 ### Vertical Viscosity & Diffusivity
+Vertical viscous and diffusion operators are Laplacian with combination of a fixed vertical viscosity and diffusivity of (??) and additional viscosity and diffusivity diagnosed from the K-Profile Parameterization of [Large et. al (1994)](https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/94RG01872)
+
 
 ### Momentum Boundary Conditions
-
-### 
+Free slip sides and free slip bottom
+Quadratic bottom drag
 
 
