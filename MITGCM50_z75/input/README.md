@@ -9,6 +9,7 @@ After temporal processing, fields are vertically interpolated from HYCOM's densi
 
 ## Atmospheric fields (CheapAML)
 
+CheapAML settings are consistent with [ChaOcean simulation configurations](https://github.com/quentinjamet/chaocean/blob/master/MITgcm/ocac/memb00/data.cheapaml)
 
 ## Model Configuration
 
