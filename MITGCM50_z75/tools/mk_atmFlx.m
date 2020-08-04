@@ -67,8 +67,13 @@ flag_save = 1;
 %global xLon yLat mask_mit mask_topo x_cut ybc
 %mk_grid(4,0,flg_cut)
 % create variables "xLon" and "yLat" for griddata calls below
-xLon  = double(ncread(mitgcmGridNCFile,lonVar));
-yLat  = double(ncread(mitgcmGridNCFile,latVar));
+xx  = double(ncread(mitgcmGridNCFile,lonVar));
+xx = xx(1,:);
+yy  = double(ncread(mitgcmGridNCFile,latVar));
+yy = yy(:,1);
+
+[yLat,xLon]=meshgrid(yy,xx);
+
 
 %-------------
 % Set of field 

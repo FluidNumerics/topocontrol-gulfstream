@@ -17,7 +17,7 @@ yLat  = double(ncread(mitgcmGridNCFile,latVar));
 
 shape = [size(xLon,1), size(xLon,2), nTimeLevels]
 
-for k = 2:length(atmFiles)
+for k = 1:length(atmFiles)
 
   fprintf('Reading %s \n',atmFiles(k))
   fileID = fopen(atmFiles(k),'r');
@@ -38,5 +38,6 @@ for k = 2:length(atmFiles)
   fileID = fopen(strcat(outputDir,atmNames(k),'.bin'),'w');
   fwrite(fileID,var,'single','ieee-be');
   fclose(fileID);
+
 
 end
