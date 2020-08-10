@@ -72,8 +72,7 @@ def plotAtmVelocity(lon,lat,topog,u,v,nlevels,fieldname,plotDir):
 
 #END plotAtmVelocity
 
-#def plotAtmField(lon,lat,topog,field,minmax,units,nlevels,fieldname,plotDir):
-def plotAtmField(lon,lat,topog,field,units,nlevels,fieldname,plotDir):
+def plotAtmField(lon,lat,topog,field,minmax,units,nlevels,fieldname,plotDir):
 
   fieldPlotDir = '{}/{}'.format(plotDir,fieldname)
   subprocess.run(shlex.split('mkdir -p {}/{}'.format(plotDir,fieldname))) 
@@ -90,9 +89,9 @@ def plotAtmField(lon,lat,topog,field,units,nlevels,fieldname,plotDir):
      sns.set_style('ticks')
 
      CS = plt.contour(lon,lat,topog,coastLine)
-     #lev = linspace(minmax[0],minmax[1],nlevels]
-     #CS2 = ax.contourf(np.transpose(lon),np.transpose(lat),field[:,:,i],lev)
-     CS2 = ax.contourf(np.transpose(lon),np.transpose(lat),field[:,:,i],nlevels)
+     lev = np.linspace(minmax[0],minmax[1],nlevels)
+     CS2 = ax.contourf(np.transpose(lon),np.transpose(lat),field[:,:,i],lev,cmap='Reds')
+    # CS2 = ax.contourf(np.transpose(lon),np.transpose(lat),field[:,:,i],nlevels)
 
      ax.annotate(date,xy=(0.1,0.9),xycoords='axes fraction',backgroundcolor='white')
 
@@ -132,12 +131,11 @@ def main():
 
   daysPerYear = 365
   plotDir = '../plots'
-  #atmFiles = ['u10.bin','v10.bin','radsw.bin','r2.bin','q2.bin','radlw.bin','precip.bin']
   atmUV = ['u10_2003.box','v10_2003.box']
-  #atmFiles = ['radsw_2003.box','t2_2003.box','q2_2003.box','radlw_2003.box','precip_2003.box']
-  atmFiles = ['t2_2003.box','q2_2003.box','radlw_2003.box','precip_2003.box']
-#  minmax = [[100 800],[15 30],[],[],[100 800],[]]
-#  units = ['(W/m^2)','(C)','(kg/kg)','(W/m^2)','(kg)']
+  atmFiles = ['radsw.bin','t2.bin','q2.bin','radlw.bin','precip.bin']
+  atmFiles = ['precip.bin']
+  minmax = [[0,800],[-10,30],[0,0.02],[200,450],[0.0,0.001]]
+  units = ['(W/m^2)','(C)','(kg/kg)','(W/m^2)','(kg/m^2)']
   atmFieldsPerDay = 4
   atmNt = daysPerYear*atmFieldsPerDay
   inputDeckDir = '../input'
@@ -146,19 +144,19 @@ def main():
 
   lon, lat, topog = load_bathy_nc_file('../input/gebco_smoothed_topog.nc')
   ny, nx = np.shape(topog)
-  print(np.shape(topog))
 
   plotTopog(lon,lat,topog,50,plotDir)
 
   u = loadAtmBinaryFile(inputDeckDir+'/'+atmUV[0],nx,ny,atmNt)
   v = loadAtmBinaryFile(inputDeckDir+'/'+atmUV[1],nx,ny,atmNt)
   plotAtmVelocity(lon,lat,topog,u,v,50,'u10',plotDir)
+  k=0
   for f in atmFiles:
     print(f)
     atmField = loadAtmBinaryFile(inputDeckDir+'/'+f,nx,ny,atmNt)
-
     fieldname = f.split('.')[0]
-    plotAtmField(lon,lat,topog,atmField,'(units)',50,fieldname,plotDir)
+    plotAtmField(lon,lat,topog,atmField,minmax[k],units[k],50,fieldname,plotDir)
+    k+=1
 
 
 if __name__ == '__main__':
