@@ -8,13 +8,35 @@ import netCDF4 as nc
 import matplotlib.pyplot as plt
 import seaborn as sns
 import datetime
+from docopt import docopt
+
+DOC="""input_deck_review
+A tool for visualizing MITgcm input files.
 
 
-def loadAtmBinaryFile(filename,nx,ny,nt):
+Usage:
+input_deck_review bathymetry <bathyfile> [--outdir=<outdir>] [--cmap=<cmap>] [--nlevels=<nlevels>]
+input_deck_review cheapaml-velocity <bathyfile> <ufile> <vfile> <min> <max> <dt_hour> [--outdir=<outdir>] [--cmap=<cmap>] [--nlevels=<nlevels>]
+input_deck_review cheapaml-field <bathyfile> <fieldfile> <name> <units> <min> <max> <dt_hour> [--outdir=<outdir>] [--cmap=<cmap>] [--nlevels=<nlevels>]
+
+Commands:
+bathymetry            Plot the bathymetry field only.
+cheapaml-velocity     Plot the CheapAML velocity field, showing vectors and speed with a coastline from the provided bathymetry file.
+cheapaml-field        Plot a scalar CheapAML field with a coastline from the provided bathymetry file.
+
+Options:
+-h --help                     Display this help screen
+--outdir=<outdir>             Output directory [default: ../plots]
+--cmap=<cmap>                 Colormap for plotting [default: Reds]
+--nlevels=<nlevels>           Number of distinct levels to use in contourf plots [default: 50]
+"""
+
+
+def loadAtmBinaryFile(filename,nx,ny):
 
   field = np.fromfile(filename,dtype='>f')
 
-  outField = np.reshape(field,(nx,ny,nt),'F')
+  outField = np.reshape(field,(nx,ny,-1),'F')
 
   return outField
 #END load_atmbinary_file
@@ -32,10 +54,9 @@ def load_bathy_nc_file(filename):
 
 #END load_bathy_nc_file
 
-def plotAtmVelocity(lon,lat,topog,u,v,nlevels,fieldname,plotDir):
+def plotAtmVelocity(lon,lat,topog,u,v,nlevels,fieldname,dt_hour,cmap,plotDir):
 
-  fieldPlotDir = '{}/{}'.format(plotDir,fieldname)
-  subprocess.run(shlex.split('mkdir -p {}/{}'.format(plotDir,fieldname))) 
+  fieldPlotDir = plotDir
 
   nt = np.shape(u)[2]
   print(np.shape(u))
@@ -43,7 +64,7 @@ def plotAtmVelocity(lon,lat,topog,u,v,nlevels,fieldname,plotDir):
 
   for i in range(0,nt):
 
-     date = (datetime.datetime(2003, 1, 1) + datetime.timedelta(i*6/24)).strftime('%d/%m/%Y')
+     date = (datetime.datetime(2003, 1, 1) + datetime.timedelta(i*dt_hour/24)).strftime('%d/%m/%Y')
 
      fig, ax = plt.subplots(constrained_layout=True)
      speed = np.squeeze(np.sqrt( np.square(u[:,:,i]) + np.square(v[:,:,i]) ))
@@ -51,7 +72,7 @@ def plotAtmVelocity(lon,lat,topog,u,v,nlevels,fieldname,plotDir):
 
      CS = plt.contour(lon,lat,topog,coastLine)
      sLev = np.linspace(0,20,nlevels)
-     CS2 = ax.contourf(np.transpose(lon),np.transpose(lat),speed,sLev,cmap='Reds')
+     CS2 = ax.contourf(np.transpose(lon),np.transpose(lat),speed,sLev,cmap=cmap)
      skip = 25
      CS3 = ax.quiver(np.transpose(lon[::skip,::skip]),
                      np.transpose(lat[::skip,::skip]),
@@ -72,10 +93,9 @@ def plotAtmVelocity(lon,lat,topog,u,v,nlevels,fieldname,plotDir):
 
 #END plotAtmVelocity
 
-def plotAtmField(lon,lat,topog,field,minmax,units,nlevels,fieldname,plotDir):
+def plotAtmField(lon,lat,topog,field,minmax,units,nlevels,fieldname,dt_hour,cmap,plotDir):
 
-  fieldPlotDir = '{}/{}'.format(plotDir,fieldname)
-  subprocess.run(shlex.split('mkdir -p {}/{}'.format(plotDir,fieldname))) 
+  fieldPlotDir = plotDir
 
   nt = np.shape(field)[2]
   print(np.shape(field))
@@ -83,15 +103,14 @@ def plotAtmField(lon,lat,topog,field,minmax,units,nlevels,fieldname,plotDir):
 
   for i in range(0,nt):
 
-     date = (datetime.datetime(2003, 1, 1) + datetime.timedelta(i*6/24)).strftime('%d/%m/%Y')
+     date = (datetime.datetime(2003, 1, 1) + datetime.timedelta(i*dt_hour/24)).strftime('%d/%m/%Y')
 
      fig, ax = plt.subplots(constrained_layout=True)
      sns.set_style('ticks')
 
      CS = plt.contour(lon,lat,topog,coastLine)
      lev = np.linspace(minmax[0],minmax[1],nlevels)
-     CS2 = ax.contourf(np.transpose(lon),np.transpose(lat),field[:,:,i],lev,cmap='Reds')
-    # CS2 = ax.contourf(np.transpose(lon),np.transpose(lat),field[:,:,i],nlevels)
+     CS2 = ax.contourf(np.transpose(lon),np.transpose(lat),field[:,:,i],lev,cmap=cmap)
 
      ax.annotate(date,xy=(0.1,0.9),xycoords='axes fraction',backgroundcolor='white')
 
@@ -107,12 +126,11 @@ def plotAtmField(lon,lat,topog,field,minmax,units,nlevels,fieldname,plotDir):
 
 #END plotAtmField
 
-def plotTopog(lon,lat,topog,nlevels,plotDir):
+def plotTopog(lon,lat,topog,nlevels,cmap,plotDir):
 
   fig, ax = plt.subplots(constrained_layout=True)
   sns.set_style('ticks')
-
-  CS = ax.contourf(lon,lat,topog,nlevels,cmap='terrain')
+  CS = ax.contourf(lon,lat,topog,nlevels,cmap=cmap)
 
   coastLine = np.linspace(-5,0,2)
   CS2 = plt.contour(lon,lat,topog,coastLine)
@@ -126,37 +144,51 @@ def plotTopog(lon,lat,topog,nlevels,plotDir):
 
 #END plotTopog
 
+def parse_cli():
+
+    args = docopt(DOC,version='input_deck_review 0.0.0')
+
+    return args
+
 def main():
 
+  args = parse_cli()
 
-  daysPerYear = 365
-  plotDir = '../plots'
-  atmUV = ['u10_2003.box','v10_2003.box']
-  atmFiles = ['radsw.bin','t2.bin','q2.bin','radlw.bin','precip.bin']
-  atmFiles = ['precip.bin']
-  minmax = [[0,800],[-10,30],[0,0.02],[200,450],[0.0,0.001]]
-  units = ['(W/m^2)','(C)','(kg/kg)','(W/m^2)','(kg/m^2)']
-  atmFieldsPerDay = 4
-  atmNt = daysPerYear*atmFieldsPerDay
-  inputDeckDir = '../input'
+  subprocess.run(shlex.split('mkdir -p {}'.format(args['--outdir'])))
 
-  subprocess.run(shlex.split('mkdir -p {}'.format(plotDir)))
-
-  lon, lat, topog = load_bathy_nc_file('../input/gebco_smoothed_topog.nc')
+  lon, lat, topog = load_bathy_nc_file(args['<bathyfile>'])
   ny, nx = np.shape(topog)
 
-  plotTopog(lon,lat,topog,50,plotDir)
+  if args['bathymetry'] :
 
-  u = loadAtmBinaryFile(inputDeckDir+'/'+atmUV[0],nx,ny,atmNt)
-  v = loadAtmBinaryFile(inputDeckDir+'/'+atmUV[1],nx,ny,atmNt)
-  plotAtmVelocity(lon,lat,topog,u,v,50,'u10',plotDir)
-  k=0
-  for f in atmFiles:
-    print(f)
-    atmField = loadAtmBinaryFile(inputDeckDir+'/'+f,nx,ny,atmNt)
-    fieldname = f.split('.')[0]
-    plotAtmField(lon,lat,topog,atmField,minmax[k],units[k],50,fieldname,plotDir)
-    k+=1
+      plotTopog(lon,lat,topog,
+                int(args['--nlevels']),
+                args['--cmap'],
+                args['--outdir'])
+
+  elif args['cheapaml-velocity'] :
+  
+      outDir = '{}/{}'.format(args['--outdir'],'10_meter_wind')
+      subprocess.run(shlex.split('mkdir -p {}'.format(outDir)))
+      u = loadAtmBinaryFile(args['<ufile>'],nx,ny)
+      v = loadAtmBinaryFile(args['<vfile>'],nx,ny)
+      plotAtmVelocity(lon,lat,topog,u,v,
+                      int(args['--nlevels']),
+                      '10 meter wind',
+                      int(args['<dt_hour>']),
+                      args['--cmap'],
+                      outDir)
+
+  elif args['cheapaml-field'] :
+
+      outDir = '{}/{}'.format(args['--outdir'],args['<name>'])
+      subprocess.run(shlex.split('mkdir -p {}'.format(outDir)))
+      atmField = loadAtmBinaryFile(args['<fieldfile>'],nx,ny,)
+      plotAtmField(lon,lat,topog,atmField,
+                   [float(args['<min>']),float(args['<max>'])],
+                   args['<units>'],int(args['--nlevels']),
+                   args['<name>'],int(args['<dt_hour>']),
+                   args['--cmap'],outDir)
 
 
 if __name__ == '__main__':
