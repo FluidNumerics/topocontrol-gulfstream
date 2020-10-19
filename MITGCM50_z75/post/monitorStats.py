@@ -112,6 +112,18 @@ def main():
 
   plotStats(stats, {}, plotdir )
 
+  # Create a JSON payload for output
+  output_payload = {'monitor_stats':[]}
+  for var in stats.keys():
+    for k in range(len(stats[var])):
+      pl = {'name':var,
+            'time_seconds':stats['time_secondsf'][k],
+            'value':stats[var][k],
+            'simulation_id':args['--simulation_id']}
+      output_payload['monitor_stats'].append(pl)
+
+  print(json.dumps(output_payload,indent=2))
+
 #END main
 
 if __name__ == '__main__':
