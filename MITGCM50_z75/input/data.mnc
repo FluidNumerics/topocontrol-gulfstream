@@ -3,7 +3,7 @@
 # mnc_use_indir=.FALSE.,
 # mnc_indir_str='start/',
  mnc_use_outdir=.FALSE.,
- mnc_outdir_str='mnc_test_',
+ mnc_outdir_str='mnc_out_',
  mnc_outdir_date=.FALSE.,
  monitor_mnc=.FALSE.,
 # snapshot_mnc=.FALSE.,

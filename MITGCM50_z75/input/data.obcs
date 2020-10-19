@@ -1,15 +1,15 @@
 # Open-boundaries
- &OBCS.PARM01
- OB.Ieast=996*-1,
- OB.Jsouth=1260*1,
- OB.Jnorth=1260*-1,
- OBCS.monitorFreq=7200.,
+ &OBCS_PARM01
+ OB_Ieast=996*-1,
+ OB_Jsouth=1280*1,
+ OB_Jnorth=1280*-1,
+ OBCS_monitorFreq=7200.,
  useOBCSsponge=.TRUE.,
  useOBCSprescribe=.TRUE.,
  useOBCSbalance=.TRUE.,
- OBCS.balanceFacE=1.,
- OBCS.balanceFacS=1.,
- OBCS.balanceFacN=1.,
+ OBCS_balanceFacE=1.,
+ OBCS_balanceFacS=1.,
+ OBCS_balanceFacN=1.,
  OBNtFile='t.north.bin',
  OBNsFile='s.north.bin',
  OBNuFile='u.north.bin',
@@ -24,10 +24,10 @@
  OBEvFile='v.east.bin',
  &end
 # Orlanski parameters
- &OBCS.PARM02
+ &OBCS_PARM02
  &end
 # Sponge-layer parameters 
- &OBCS.PARM03
+ &OBCS_PARM03
   spongeThickness=8,
   Urelaxobcsinner=43200.0,
   Urelaxobcsbound=600.0,

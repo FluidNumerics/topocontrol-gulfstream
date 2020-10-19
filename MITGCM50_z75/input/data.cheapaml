@@ -1,11 +1,11 @@
- #cheapaml parameters
+# cheapaml parameters
  &CHEAPAML_CONST
  cheapaml_ntim = 5,
  cheapaml_mask_width=5,
  cheapaml_h = 1000.0,
  cheapaml_kdiff = 1000.0,
- cheapaml_taurelax = 0.1,
- cheapaml_taurelaxocean = 0.0
+# cheapaml_taurelax = 0.1,
+# cheapaml_taurelaxocean = 0.0
  &end
 # Forcing Files 
  &CHEAPAML_PARM01

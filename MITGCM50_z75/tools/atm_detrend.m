@@ -17,7 +17,7 @@ yLat  = double(ncread(mitgcmGridNCFile,latVar));
 
 shape = [size(xLon,1), size(xLon,2), nTimeLevels]
 
-for k = 2:length(atmFiles)
+for k = 1:length(atmFiles)
 
   fprintf('Reading %s \n',atmFiles(k))
   fileID = fopen(atmFiles(k),'r');
