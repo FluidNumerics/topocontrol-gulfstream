@@ -43,6 +43,7 @@ def main():
 
 #  args = parse_cli()
 
+  args = {'<file>':'output/STDOUT.0000', '--simulation_id':'mitgcm-50-z75-spinup'}
   stats = {'time_tsnumber':[],
            'time_secondsf':[],
            'dynstat_eta_max':[],
@@ -95,31 +96,21 @@ def main():
            'surfExpan_theta_mean':[],
            'surfExpan_salt_mean':[]}
 
-  args = {'<file>':'output/STDOUT.0000', '--simulation_id':'mitgcm-50-z75-spinup-00'}
+  # Load existing raw stats
+  print('Loading raw_stats')
+  with open(args['--simulation_id']+'/raw_stats.json') as f:
+    raw = json.load(f)
+
   with open(args['<file>'], 'r') as fp:
     for line in fp:
       for var in stats.keys():
         if var in line:
           stats[var].append(np.float(line.split('=')[-1].lstrip().rstrip()))
 
+
   plotdir = args['--simulation_id']+'/plots/'
 
   plotStats(stats, {}, plotdir )
-
-  # Create a JSON payload for output
-  output_payload = {'monitor_stats':[]}
-  for var in stats.keys():
-    for k in range(len(stats[var])):
-      pl = {'name':var,
-            'time_seconds':stats['time_secondsf'][k],
-            'value':stats[var][k],
-            'simulation_id':args['--simulation_id']}
-      output_payload['monitor_stats'].append(pl)
-
-  print(json.dumps(output_payload,indent=2))
-
-
-
 
 #END main
 
