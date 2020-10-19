@@ -1,0 +1,127 @@
+#!/usr/bin/python3
+DOC="""monitorStats
+A script used to plot the monitor statistics reported in STDOUT.
+
+Usage:
+  monitorStats plot <file> [--out=<out>] [--simulation_id=<simid>]
+Commands:
+  plot              Create plots
+  report            Create a json payload for the report
+Options:
+  -h --help                 Display this help screen
+  --out=<out>               The path to place the output files [default: ./]
+  --simulation_id=<simid>   An alphanumeric simulation identifier [default: mitgcm-50-z75-spinup-00]
+"""
+from MITgcmutils import mds
+from matplotlib import pyplot as plt
+from docopt import docopt
+import numpy as np
+import json
+import os
+
+def parse_cli():
+
+  args = docopt(DOC,version='monitorStats 0.0.0')
+  return args
+
+#END parse_cli
+
+def plotStats(monStats, opts, outdir):
+
+    for var in monStats.keys():
+      if not var == 'time_secondsf':
+        f, ax = plt.subplots()
+        ax.plot(monStats['time_secondsf'], monStats[var], marker='', color='black', linewidth=2, label=var)
+        ax.fill_between(monStats['time_secondsf'], 0.0, monStats[var], color=(0.8,0.8,0.8,0.8))
+
+        ax.grid(color='gray', linestyle='-', linewidth=1)
+        ax.set(xlabel=var, ylabel='Time (s)')
+        f.savefig(outdir+var+'.png')
+        plt.close('all')
+
+def main():
+
+#  args = parse_cli()
+
+  stats = {'time_tsnumber':[],
+           'time_secondsf':[],
+           'dynstat_eta_max':[],
+           'dynstat_eta_min':[],
+           'dynstat_eta_mean':[],
+           'dynstat_eta_sd':[],
+           'dynstat_eta_del2':[],
+           'dynstat_uvel_max':[],
+           'dynstat_uvel_min':[],
+           'dynstat_uvel_mean':[],
+           'dynstat_uvel_sd':[],
+           'dynstat_uvel_del2':[],
+           'dynstat_vvel_max':[],
+           'dynstat_vvel_min':[],
+           'dynstat_vvel_mean':[],
+           'dynstat_vvel_sd':[],
+           'dynstat_vvel_del2':[],
+           'dynstat_wvel_max':[],
+           'dynstat_wvel_min':[],
+           'dynstat_wvel_mean':[],
+           'dynstat_wvel_sd':[],
+           'dynstat_wvel_del2':[],
+           'dynstat_theta_max':[],
+           'dynstat_theta_min':[],
+           'dynstat_theta_mean':[],
+           'dynstat_theta_sd':[],
+           'dynstat_theta_del2':[],
+           'dynstat_salt_max':[],
+           'dynstat_salt_min':[],
+           'dynstat_salt_mean':[],
+           'dynstat_salt_sd':[],
+           'dynstat_salt_del2':[],
+           'trAdv_CFL_u_max':[],
+           'trAdv_CFL_v_max':[],
+           'trAdv_CFL_w_max':[],
+           'advcfl_uvel_max':[],
+           'advcfl_vvel_max':[],
+           'advcfl_wvel_max':[],
+           'advcfl_W_hf_max':[],
+           'pe_b_mean':[],
+           'ke_max':[],
+           'ke_mean':[],
+           'ke_vol':[],
+           'vort_r_min':[],
+           'vort_r_max':[],
+           'vort_a_mean':[],
+           'vort_a_sd':[],
+           'vort_p_mean':[],
+           'vort_p_sd':[],
+           'surfExpan_theta_mean':[],
+           'surfExpan_salt_mean':[]}
+
+  args = {'<file>':'output/STDOUT.0000', '--simulation_id':'mitgcm-50-z75-spinup-00'}
+  with open(args['<file>'], 'r') as fp:
+    for line in fp:
+      for var in stats.keys():
+        if var in line:
+          stats[var].append(np.float(line.split('=')[-1].lstrip().rstrip()))
+
+  plotdir = args['--simulation_id']+'/plots/'
+
+  plotStats(stats, {}, plotdir )
+
+  # Create a JSON payload for output
+  output_payload = {'monitor_stats':[]}
+  for var in stats.keys():
+    for k in range(len(stats[var])):
+      pl = {'name':var,
+            'time_seconds':stats['time_secondsf'][k],
+            'value':stats[var][k],
+            'simulation_id':args['--simulation_id']}
+      output_payload['monitor_stats'].append(pl)
+
+  print(json.dumps(output_payload,indent=2))
+
+
+
+
+#END main
+
+if __name__ == '__main__':
+  main()
