@@ -22,6 +22,7 @@
           },
 	  "output":"gebco_smoothed_topog",
 	  "smoothing": {"active": true, "sigma": [6.0, 6.0]},
+          "paving": {"min_depth": -8.0},
 	  "interp_kind": "cubic"
         }
     ],

@@ -3,6 +3,7 @@
 import json
 import scipy.interpolate as interp
 import scipy.ndimage.filters as filters
+import scipy.ndimage as ndimage
 import numpy as np
 import matplotlib.pyplot as plt
 import netCDF4 as nc
@@ -181,13 +182,24 @@ def smooth_bathy(bathy):
 
 #end smooth_bathy
 
-def interpolate_bathy(bathy, newx, newy):
+def interpolate_bathy(bathy, newx, newy, min_depth):
 
     interp_cache = []
     for b in bathy:
         f = interp.interp2d( b['x'], b['y'], b['topog'], kind=b['interp_kind'] )
         topog = f(newx, newy)
-        topog = np.where(topog>0, 0, topog)
+        topog = np.where(topog>min_depth, 0, topog)
+
+        # fill in "lakes" in bathymetry
+        mask = topog
+        mask = np.where(mask<0, 1, mask).astype(int)
+        # Invert the mask so that "lakes" have binary value of 0
+        mask = 1.0-mask
+        filled = ndimage.binary_fill_holes(mask).astype(int)
+        # Reset the mask so that land has value of 0
+        mask = 1.0-filled
+        topog = np.multiply(topog,mask.astype(float))
+      
         interp_cache.append({'x':newx,'y':newy,'topog':topog,
                              'interp_kind':b['interp_kind'],
                              'output': b['output']})
@@ -215,7 +227,6 @@ def write_for_netcdf(config, bathy):
         latitude[:] = b['y']
         topog[:,:] = b['topog']
         
-
         rootgrp.close()
 
 def write_for_mitgcm(config, bathy):
@@ -228,6 +239,30 @@ def write_for_mitgcm(config, bathy):
             f.write(bytedata)
 
 #END write_for_mitgcm
+
+def write_for_obj(config, bathy):
+
+  for b in bathy:
+    nlon = b['x'].size
+    nlat = b['y'].size
+    with open(config['output_directory']+'/'+b['output']+".obj","w") as f:
+      
+      for j in range(nlat-1):
+        for i in range(nlon-1):
+           f.write('v %f %f %f\n'%(b['x'][i], b['y'][j], b['topog'][j][i]))
+           f.write('v %f %f %f\n'%(b['x'][i+1], b['y'][j], b['topog'][j][i+1]))
+           f.write('v %f %f %f\n'%(b['x'][i+1], b['y'][j+1], b['topog'][j+1][i+1]))
+           f.write('v %f %f %f\n'%(b['x'][i], b['y'][j+1], b['topog'][j+1][i]))
+
+      k = 1
+      for j in range(nlat-1):
+        for i in range(nlon-1):
+           f.write('f %d %d %d %d\n'%(k, k+1, k+2, k+3))
+           k+=4
+
+
+#END write_for_obj
+
 
 def main():
 
@@ -242,14 +277,13 @@ def main():
 
     bathy = smooth_bathy(bathy)
 
-    interp_bathy = interpolate_bathy(bathy, newx, newy)
+    interp_bathy = interpolate_bathy(bathy, newx, newy, config['bathymetry'][0]['paving']['min_depth'])
 
     subprocess.call(shlex.split('mkdir -p {}'.format(config['output_directory'])))
 
     write_for_netcdf(config, interp_bathy)
 
     write_for_mitgcm(config, interp_bathy)
-
 
 
 #END main
