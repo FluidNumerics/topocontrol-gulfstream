@@ -4,13 +4,17 @@ A script used to plot the monitor statistics reported in STDOUT.
 
 Usage:
   monitorStats plot <file> [--out=<out>] [--simulation_id=<simid>]
+
+
 Commands:
   plot              Create plots
   report            Create a json payload for the report
+
+
 Options:
   -h --help                 Display this help screen
   --out=<out>               The path to place the output files [default: ./]
-  --simulation_id=<simid>   An alphanumeric simulation identifier [default: mitgcm-50-z75-spinup-00]
+  --simulation_id=<simid>   An alphanumeric simulation identifier [default: mitgcm-50z75-spinup-1]
 """
 from MITgcmutils import mds
 from matplotlib import pyplot as plt
@@ -30,9 +34,10 @@ def plotStats(monStats, opts, outdir):
 
     for var in monStats.keys():
       if not var == 'time_secondsf':
+        nt = len(monStats[var])
         f, ax = plt.subplots()
-        ax.plot(monStats['time_secondsf'], monStats[var], marker='', color='black', linewidth=2, label=var)
-        ax.fill_between(monStats['time_secondsf'], 0.0, monStats[var], color=(0.8,0.8,0.8,0.8))
+        ax.plot(monStats['time_secondsf'][0:nt-1], monStats[var][0:nt-1], marker='', color='black', linewidth=2, label=var)
+        ax.fill_between(monStats['time_secondsf'][0:nt-1], 0.0, monStats[var][0:nt-1], color=(0.8,0.8,0.8,0.8))
 
         ax.grid(color='gray', linestyle='-', linewidth=1)
         ax.set(xlabel=var, ylabel='Time (s)')
@@ -41,9 +46,9 @@ def plotStats(monStats, opts, outdir):
 
 def main():
 
-#  args = parse_cli()
+  args = parse_cli()
 
-  args = {'<file>':'output/STDOUT.0000', '--simulation_id':'mitgcm-50-z75-spinup'}
+#  args = {'<file>':'output/STDOUT.0000', '--simulation_id':'mitgcm-50-z75-spinup'}
   stats = {'time_tsnumber':[],
            'time_secondsf':[],
            'dynstat_eta_max':[],
@@ -96,10 +101,19 @@ def main():
            'surfExpan_theta_mean':[],
            'surfExpan_salt_mean':[]}
 
+  plotdir = args['--simulation_id']+'/plots/'
+  try:
+    os.makedirs(plotdir)
+  except:
+    print(plotdir + ' directory creation failed')
+
   # Load existing raw stats
   print('Loading raw_stats')
-  with open(args['--simulation_id']+'/raw_stats.json') as f:
-    raw = json.load(f)
+  try:
+    with open(args['--simulation_id']+'/raw_stats.json') as f:
+      raw = json.load(f)
+  except:
+    raw = {}
 
   with open(args['<file>'], 'r') as fp:
     for line in fp:
@@ -107,8 +121,8 @@ def main():
         if var in line:
           stats[var].append(np.float(line.split('=')[-1].lstrip().rstrip()))
 
-
-  plotdir = args['--simulation_id']+'/plots/'
+  with open(args['--simulation_id']+'/raw_stats.json','w') as f:
+    json.dump(stats,f)
 
   plotStats(stats, {}, plotdir )
 
@@ -122,7 +136,10 @@ def main():
             'simulation_id':args['--simulation_id']}
       output_payload['monitor_stats'].append(pl)
 
-  print(json.dumps(output_payload,indent=2))
+  with open(args['--simulation_id']+'/bq_payload.json','w') as f:
+    for io in output_payload['monitor_stats']:
+      json.dump(io,f)
+      f.write('\n')
 
 #END main
 
