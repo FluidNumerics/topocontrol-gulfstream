@@ -3,7 +3,7 @@ DOC="""monitorStats
 A script used to plot the monitor statistics reported in STDOUT.
 
 Usage:
-  monitorStats plot <file> [--out=<out>] [--simulation_id=<simid>]
+  monitorStats plot <file> [--simulation_id=<simid>]
 
 
 Commands:
@@ -13,7 +13,6 @@ Commands:
 
 Options:
   -h --help                 Display this help screen
-  --out=<out>               The path to place the output files [default: ./]
   --simulation_id=<simid>   An alphanumeric simulation identifier [default: mitgcm-50z75-spinup-1]
 """
 from MITgcmutils import mds
@@ -22,6 +21,7 @@ from docopt import docopt
 import numpy as np
 import json
 import os
+from dictdiffer import diff, patch
 
 def parse_cli():
 
@@ -124,15 +124,27 @@ def main():
   with open(args['--simulation_id']+'/raw_stats.json','w') as f:
     json.dump(stats,f)
 
-  plotStats(stats, {}, plotdir )
+  #plotStats(stats, {}, plotdir )
+
+  # Calculate the difference in data so that we only load new data to BQ
+  if raw:
+    statsDiff = diff(raw,stats)
+    newStats = {}
+    for d in list(statsDiff):
+      if d[0] == 'add':
+        newStats[d[1]] = []
+        for v in d[2]:
+          newStats[d[1]].append(v[1])
+  else:
+    newStats = stats
 
   # Create a JSON payload for output
   output_payload = {'monitor_stats':[]}
-  for var in stats.keys():
-    for k in range(len(stats[var])):
+  for var in newStats.keys():
+    for k in range(len(newStats[var])):
       pl = {'name':var,
-            'time_seconds':stats['time_secondsf'][k],
-            'value':stats[var][k],
+            'time_seconds':newStats['time_secondsf'][k],
+            'value':newStats[var][k],
             'simulation_id':args['--simulation_id']}
       output_payload['monitor_stats'].append(pl)
 
