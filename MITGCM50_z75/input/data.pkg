@@ -3,6 +3,6 @@
  useOBCS=.TRUE.,
  useKPP=.TRUE.,
  useCHEAPAML=.TRUE.,
- useMNC=.TRUE.,
+ useMNC=.FALSE.,
  useDIAGNOSTICS=.FALSE.,
  &end

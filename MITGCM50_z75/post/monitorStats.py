@@ -22,6 +22,9 @@ import numpy as np
 import json
 import os
 from dictdiffer import diff, patch
+import datetime
+
+simStart = datetime.datetime(2003,1,1,0,0,0)
 
 def parse_cli():
 
@@ -142,7 +145,9 @@ def main():
   output_payload = {'monitor_stats':[]}
   for var in newStats.keys():
     for k in range(len(newStats[var])):
-      pl = {'name':var,
+      simDateTime = simStart + datetime.timedelta(seconds=newStats['time_secondsf'][k])
+      pl = {'simulation_datetime': simDateTime.strftime("%Y/%m/%d %H:%M:%S"),
+            'name':var,
             'time_seconds':newStats['time_secondsf'][k],
             'value':newStats[var][k],
             'simulation_id':args['--simulation_id']}
