@@ -1,9 +1,9 @@
 #!/bin/bash
 
 set -x
-SCRIPT_PATH="/home/joe/apps/topocontrol-gulfstream/MITGCM50_z75/post"
-REMOTE_STDOUT="schoonover@port.ocean.fsu.edu:MITgcm/MITGCM50_z75/run/STDOUT.0000"
-SIMULATION_ID="mitgcm-50z75-adjust-1"
+SCRIPT_PATH="/home/joe/topocontrol-gulfstream/MITGCM50_z75/post"
+REMOTE_STDOUT="/mnt/mitgcm-datastore/MITgcm/MITGCM50_z75/run/STDOUT.0000"
+SIMULATION_ID="mitgcm-50z75-spinup-phaseII-gcp"
 BQ_TABLE="fsu-gulfstream:mitgcm_run_data.monitor_stats"
 
 cd $SCRIPT_PATH
