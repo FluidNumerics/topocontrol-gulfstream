@@ -20,9 +20,26 @@
             "topog_var": "elevation", 
             "swap_dimensions": false
           },
-	  "output":"gebco_smoothed_topog",
+	  "output":"gebco_smoothed_topog_pave",
 	  "smoothing": {"active": true, "sigma": [6.0, 6.0]},
           "paving": {"min_depth": -8.0},
+	  "interp_kind": "cubic"
+        },
+        {
+	  "name": "GEBCO Bathymetry (smoothed) - additional paving",
+	  "io_type": "netcdf",
+	  "box_config": {},
+	  "nc_config" : {
+            "file": "/tank/topog/gulf-stream/bathymetry/gebco_2019_n43.9453125_s18.80859375_w-83.935546875_e-48.779296875.nc",
+            "lon_units": "neg_deg_east", 
+            "lat_var": "lat", 
+            "lon_var": "lon", 
+            "topog_var": "elevation", 
+            "swap_dimensions": false
+          },
+	  "output":"gebco_smoothed_topog_pave16m",
+	  "smoothing": {"active": true, "sigma": [6.0, 6.0]},
+          "paving": {"min_depth": -16.0},
 	  "interp_kind": "cubic"
         }
     ],
