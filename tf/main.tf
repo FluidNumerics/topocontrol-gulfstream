@@ -9,7 +9,7 @@ resource "google_bigquery_dataset" "mitgcm_data" {
 }
 
 resource "google_bigquery_table" "model_timeseries" {
-  dataset_id = google_bigquery_dataset.mitgcm_post.dataset_id
+  dataset_id = google_bigquery_dataset.mitgcm_data.dataset_id
   table_id   = "model_timeseries"
   schema = <<EOF
 [
