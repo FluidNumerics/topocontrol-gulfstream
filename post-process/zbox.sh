@@ -2,7 +2,7 @@
 
 source env/bin/activate
 
-ITERATE=$(sed -n${SLURM_ARRAY_TASK_ID}p iterates.txt)
+ITERATE=$(sed -n ${SLURM_ARRAY_TASK_ID}p iterates.txt)
 
 python3 post-process.py zbox --datadir=$DATADIR \
                              --iterate=$ITERATE \
