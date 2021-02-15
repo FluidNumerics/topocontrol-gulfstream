@@ -3,7 +3,7 @@ DOC="""monitorStats
 A script used to plot the monitor statistics reported in STDOUT.
 
 Usage:
-  monitorStats plot <file> [--simulation_id=<simid>]
+  monitorStats report <file> [--simulation_id=<simid>] [--simulation_phase=<simphase>]
 
 
 Commands:
@@ -13,15 +13,15 @@ Commands:
 
 Options:
   -h --help                 Display this help screen
-  --simulation_id=<simid>   An alphanumeric simulation identifier [default: mitgcm-50z75-spinup-1]
+  --simulation_id=<simid>   An alphanumeric simulation identifier [default: mitgcm50_z75]
+  --simulation_phase=<simphase>   An alphanumeric simulation phase identifier [default: production]
 """
+
 from MITgcmutils import mds
-from matplotlib import pyplot as plt
 from docopt import docopt
 import numpy as np
 import json
 import os
-from dictdiffer import diff, patch
 import datetime
 
 simStart = datetime.datetime(2003,1,1,0,0,0)
@@ -32,20 +32,6 @@ def parse_cli():
   return args
 
 #END parse_cli
-
-def plotStats(monStats, opts, outdir):
-
-    for var in monStats.keys():
-      if not var == 'time_secondsf':
-        nt = len(monStats[var])
-        f, ax = plt.subplots()
-        ax.plot(monStats['time_secondsf'][0:nt-1], monStats[var][0:nt-1], marker='', color='black', linewidth=2, label=var)
-        ax.fill_between(monStats['time_secondsf'][0:nt-1], 0.0, monStats[var][0:nt-1], color=(0.8,0.8,0.8,0.8))
-
-        ax.grid(color='gray', linestyle='-', linewidth=1)
-        ax.set(xlabel=var, ylabel='Time (s)')
-        f.savefig(outdir+var+'.png')
-        plt.close('all')
 
 def main():
 
@@ -104,56 +90,25 @@ def main():
            'surfExpan_theta_mean':[],
            'surfExpan_salt_mean':[]}
 
-  plotdir = args['--simulation_id']+'/plots/'
-  try:
-    os.makedirs(plotdir)
-  except:
-    print(plotdir + ' directory creation failed')
-
-  # Load existing raw stats
-  print('Loading raw_stats')
-  try:
-    with open(args['--simulation_id']+'/raw_stats.json') as f:
-      raw = json.load(f)
-  except:
-    raw = {}
-
   with open(args['<file>'], 'r') as fp:
     for line in fp:
       for var in stats.keys():
         if var in line:
-          stats[var].append(np.float(line.split('=')[-1].lstrip().rstrip()))
-
-  with open(args['--simulation_id']+'/raw_stats.json','w') as f:
-    json.dump(stats,f)
-
-  #plotStats(stats, {}, plotdir )
-
-  # Calculate the difference in data so that we only load new data to BQ
-  if raw:
-    statsDiff = diff(raw,stats)
-    newStats = {}
-    for d in list(statsDiff):
-      if d[0] == 'add':
-        newStats[d[1]] = []
-        for v in d[2]:
-          newStats[d[1]].append(v[1])
-  else:
-    newStats = stats
+          stats[var].append(np.float64(line.split('=')[-1].lstrip().rstrip()))
 
   # Create a JSON payload for output
   output_payload = {'monitor_stats':[]}
-  for var in newStats.keys():
-    for k in range(len(newStats[var])):
-      simDateTime = simStart + datetime.timedelta(seconds=newStats['time_secondsf'][k])
+  for var in stats.keys():
+    for k in range(len(stats[var])):
+      simDateTime = simStart + datetime.timedelta(seconds=stats['time_secondsf'][k])
       pl = {'simulation_datetime': simDateTime.strftime("%Y/%m/%d %H:%M:%S"),
-            'name':var,
-            'time_seconds':newStats['time_secondsf'][k],
-            'value':newStats[var][k],
-            'simulation_id':args['--simulation_id']}
+            'metric_name':var,
+            'metric_value':stats[var][k],
+            'simulation_id':args['--simulation_id'],
+            'simulation_phase':args['--simulation_phase']}
       output_payload['monitor_stats'].append(pl)
 
-  with open(args['--simulation_id']+'/bq_payload.json','w') as f:
+  with open('./bq_payload.json','w') as f:
     for io in output_payload['monitor_stats']:
       json.dump(io,f)
       f.write('\n')
