@@ -141,7 +141,8 @@ def main():
   # Set the dry cell color
   axs[1,1].patch.set_color(patch_color)
 
-  plt.show()
+  plt.savefig(args['--outdir']+'/surface.'+args['--iterate']+'.png')
+  
 
 if __name__=='__main__':
   main()
