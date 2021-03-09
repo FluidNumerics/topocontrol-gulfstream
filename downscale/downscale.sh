@@ -22,6 +22,8 @@ Usage:
 Options:
   --input_path        The path to exisiting MITgcm metadata output. This path must include
                       grid and ocean state files (U,V,W,T,S,Eta). [Default: "./"]
+
+  --datafile_path     The path to the data* namelist files.
   
   --output_path       The output path for the initial, boundary, and forcing binary files. 
                       [Default: "./downscale"]
@@ -34,6 +36,10 @@ Options:
   
   --diter             The difference between sucessive iterates.
                       [Default: 1]
+
+  --cheapaml_iter0    The first time level in the CheapAML files to use in post-processed output. [Default: 0]
+
+  --cheapaml_iterN    The last time level in the CheapAML files to use in post-processed output. [Default: -1]
 
   --refinement-factor The integer factor to increase the resolution by for the downscaling.
                       [Default: 2]
@@ -53,9 +59,12 @@ Options:
 Examples:
 
   downscale.sh --input_path /tank/topog/gulf-stream/simulation/MITGCM50_z75/run/production/metadata \\
+               --datafile_path /tank/topog/gulf-stream/simulation/MITGCM50_z75/run/production/input \\
                --output_path /tank/topog/gulf-stream/simulation/MITGCM100_z75/input \\
                --iter0 108720 \\
                --iterN 1749600 \\
+               --cheapaml_iter0 604 \\
+               --cheapaml_iterN -1 \\
                --diter 720 \\
                --refinement-factor 2 \\
                --south "29.0" \\
@@ -78,8 +87,20 @@ Examples:
   The ocean state files are processed to create initial conditions for a grid with 2x
   the resolution on the input grid. The grid is confined to [29.0N,41.215N] x [0.0E, 15.0E],
   with the longitude bounds set relative to the input grid. Boundary conditions are 
-  created for the four boundaries of the domain in this process. All output files are
-  store in the output directory
+  created for the four boundaries of the domain in this process. 
+
+  Downscaled atmospheric files are created by reading in the atmospheric files in the 
+  input_path directory. Atmospheric files are assumed to be listed in the input_path/data.cheapaml
+  file under the following paramters
+    * UWindFile
+    * VWindFile
+    * SolarFile
+    * TrFile
+    * QrFile
+    * cheap_dlwfile
+    * cheap_prfile
+
+  All output files are stored in the output directory
 
   
       "/tank/topog/gulf-stream/simulation/MITGCM100_z75/input"
@@ -105,6 +126,11 @@ while [ "$#" -ge "1" ]; do
       shift
       ;;
 
+    --datafile_path)
+      DATAFILE_PATH="$2"
+      shift
+      ;;
+
     --iter0)
       ITER0="$2"
       shift
@@ -117,6 +143,16 @@ while [ "$#" -ge "1" ]; do
 
     --diter)
       DITER="$2"
+      shift
+      ;;
+
+    --cheapaml_iter0)
+      CHEAP_ITER0="$2"
+      shift
+      ;;
+
+    --cheapaml_iterN)
+      CHEAP_ITERN="$2"
       shift
       ;;
 
@@ -159,6 +195,30 @@ echo "downscale"
 echo "------------------------------------"
 
 mkdir -p $OUTPUT_PATH/prep
+
+
+echo "Processing Atmospheric files ... "
+atmkeys=("UWindFile" "VWindFile" "SolarFile" "TrFile" "QrFile" "cheap_dlwfile" "cheap_prfile")
+
+for key in ${atmkeys[@]}; do
+
+    thisFile=$(grep "$key" ${DATAFILE_PATH}/data.cheapaml | awk -F "=" '{print $2}' | sed "s/'//g" | sed "s/,//g")
+    if [[ -f ${DATAFILE_PATH}/${thisFile} ]]; then
+      echo "Found $key : ${DATAFILE_PATH}/${thisFile}"
+      python3 downscale.py atmosphere "$INPUT_PATH" --iter0="$CHEAP_ITER0" \
+                                                    --iterN="$CHEAP_ITERN" \
+                                                    --south="$SOUTH" \
+                                                    --north="$NORTH" \
+                                                    --west="$WEST" \
+                                                    --east="$EAST" \
+                                                    --refine-factor="$FACTOR" \
+                                                    --cheapaml-file="${DATAFILE_PATH}/${thisFile}" \
+                                                    --outdir="${OUTPUT_PATH}"
+  
+    fi
+done
+exit 0
+  
 
 for i in `seq $ITER0 $DITER $ITERN`; do
 
@@ -259,4 +319,5 @@ for i in `seq $ITER0 $DITER $ITERN`; do
     rm ${OUTPUT_PATH}/prep/eta.north.${iter}.bin
     rm ${OUTPUT_PATH}/prep/eta.east.${iter}.bin
     rm ${OUTPUT_PATH}/prep/eta.west.${iter}.bin
+
 done
