@@ -217,8 +217,6 @@ for key in ${atmkeys[@]}; do
   
     fi
 done
-exit 0
-  
 
 for i in `seq $ITER0 $DITER $ITERN`; do
 
@@ -245,6 +243,12 @@ for i in `seq $ITER0 $DITER $ITERN`; do
       mv ${OUTPUT_PATH}/prep/w.$iter.bin ${OUTPUT_PATH}/w.init.bin
 
       mv ${OUTPUT_PATH}/prep/eta.$iter.bin ${OUTPUT_PATH}/eta.init.bin
+
+      mv ${OUTPUT_PATH}/prep/xc.bin ${OUTPUT_PATH}/xc.bin
+      mv ${OUTPUT_PATH}/prep/yc.bin ${OUTPUT_PATH}/yc.bin
+      mv ${OUTPUT_PATH}/prep/dxc.bin ${OUTPUT_PATH}/dxc.bin
+      mv ${OUTPUT_PATH}/prep/dyc.bin ${OUTPUT_PATH}/dyc.bin
+      mv ${OUTPUT_PATH}/prep/drf.bin ${OUTPUT_PATH}/drf.bin
 
     fi
 

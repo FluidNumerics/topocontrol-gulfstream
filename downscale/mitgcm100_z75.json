@@ -1,0 +1,35 @@
+{
+    "target_grid":{
+      "bin": {
+        "lat_file":"/tank/topog/gulf-stream/simulation/MITGCM100_z75/input/yc.bin",
+        "lon_file":"/tank/topog/gulf-stream/simulation/MITGCM100_z75/input/xc.bin",
+        "nx": 1500,
+        "ny": 1500,
+        "x_offset": 278.5
+      }
+    },
+    "bathymetry":[
+        {
+	  "name": "GEBCO Bathymetry (smoothed)",
+	  "io_type": "netcdf",
+	  "box_config": {},
+	  "nc_config" : {
+            "file": "/tank/topog/gulf-stream/bathymetry/gebco_2019_n43.9453125_s18.80859375_w-83.935546875_e-48.779296875.nc",
+            "lon_units": "neg_deg_east", 
+            "lat_var": "lat", 
+            "lon_var": "lon", 
+            "topog_var": "elevation", 
+            "swap_dimensions": false
+          },
+	  "output":"gebco",
+	  "smoothing": {"active": true, "sigma": [6.0, 6.0]},
+          "paving": {"min_depth": -8.0},
+	  "interp_kind": "cubic"
+        }
+    ],
+    "source_grid":{},
+    "mitgcm_source" : {},
+    "output_directory": "/tank/topog/gulf-stream/simulation/MITGCM100_z75/input",
+
+    "n_cores": 2
+}

@@ -68,6 +68,7 @@ def main():
   downscaled.print_grid_size()
   if args['init'] :
     downscaled.write_state_binary(args['--outdir'])
+    downscaled.write_grid_binary(args['--outdir'])
 
   elif args['boundary']:
     downscaled.write_boundary_state_binary(args['--outdir'])
